@@ -1,0 +1,101 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+    RewriteEngine on
+
+    # Redirect www.takder.io to takder.io
+    RewriteCond %{HTTP_HOST} ^www\.takder\.io$ [NC]
+    RewriteRule ^ https://takder.io%{REQUEST_URI} [L,R=301]
+
+    # Force HTTPS on all requests, even from takder.io
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} ^(www\.)?takder\.io$ [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Force HTTPS for doing.ye resources
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} ^www\.doing\.ye$ [NC]
+    RewriteRule ^ https://doing.ye%{REQUEST_URI} [L,R=301]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_URI} !(\.css|\.js|\.png|\.jpg|\.otf|\.jpeg|\.gif|\.txt|\.ico|\.woff|\.woff2|\.ttf|\.svg|\.webp|\.mp4|\.xml|\.avif)$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(css|doingo-site|login-register|plugins|build|doingapps|assets|landing|storage|installer|js|custom|images|ioing_soon)/(.*)$ public/$1/$2 [L,NC]
+
+    # Block certain characters in query string
+    RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+    RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+    RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+    RewriteRule ^(.*)$ index.php [F,L]
+</IfModule>
+
+
+# Deny access to .htaccess
+<Files .htaccess>
+Order allow,deny
+Deny from all
+</Files>
+
+# Disable directory browsing
+Options -Indexes
+
+# Hide the contents of directories
+IndexIgnore *
+
+# Deny access to files with extensions .ini, .psd, .log, .sh
+<FilesMatch "\.(ini|psd|log|sh)$">
+Order allow,deny
+Deny from all
+
+</FilesMatch>
+
+
+
+# Deny access to filenames starting with dot(.)
+<FilesMatch "^\.">
+Order allow,deny
+Deny from all
+</FilesMatch>
+
+# Deny access to filenames starting with dot(.)
+
+<FilesMatch "\.(sql|zip|json)$">
+Order allow,deny
+Deny from all
+
+</FilesMatch>
+
+# Allow sitemap.xml but deny other xml files
+<FilesMatch "^(?!sitemap).*\.xml$">
+Order allow,deny
+Deny from all
+</FilesMatch>
+
+# this is for artisan
+<FilesMatch artisan>
+Order allow,deny
+Deny from all
+</FilesMatch>
+
+# Hide a specific file
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
