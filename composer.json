@@ -58,6 +58,9 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "jules:key-generate": [
+            "@php artisan key:generate --ansi"
         ]
     },
     "extra": {
