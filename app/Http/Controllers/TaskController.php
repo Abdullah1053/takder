@@ -30,7 +30,7 @@ class TaskController extends Controller
             'title' => $validated['title'],
         ]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Task created successfully!');
     }
 
     /**
@@ -48,7 +48,7 @@ class TaskController extends Controller
 
         $task->update($validated);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Task updated!');
     }
 
     /**
@@ -62,6 +62,6 @@ class TaskController extends Controller
 
         $task->delete();
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Task deleted successfully!');
     }
 }

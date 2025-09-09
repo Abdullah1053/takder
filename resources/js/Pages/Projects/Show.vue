@@ -1,8 +1,11 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { useForm, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import draggable from 'vuedraggablenext';
+import ConfirmationModal from '@/Components/ConfirmationModal.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import DangerButton from '@/Components/DangerButton.vue';
 
 const props = defineProps({
     project: Object,
@@ -12,6 +15,9 @@ const taskForm = useForm({
     title: '',
     project_id: props.project.id,
 });
+
+const confirmingTaskDeletion = ref(false);
+const taskToDelete = ref(null);
 
 const submitTask = () => {
     taskForm.post(route('tasks.store'), {
@@ -39,13 +45,7 @@ const onDragEnd = (event) => {
     const taskId = item.dataset.taskId;
     const newStatus = to.dataset.status;
 
-    if (!newStatus) {
-        // This can happen if the drop target isn't a valid column.
-        // We can choose to do nothing or revert the change visually if needed,
-        // but for now, we'll just prevent the API call.
-        console.error('Could not determine new status from drop target.');
-        return;
-    }
+    if (!newStatus) return;
 
     const taskToUpdate = props.project.tasks.find(t => t.id == taskId);
     if (taskToUpdate && taskToUpdate.status !== newStatus) {
@@ -58,6 +58,23 @@ const onDragEnd = (event) => {
             preserveScroll: true,
         });
     }
+};
+
+const confirmTaskDeletion = (id) => {
+    taskToDelete.value = id;
+    confirmingTaskDeletion.value = true;
+};
+
+const deleteTask = () => {
+    router.delete(route('tasks.destroy', taskToDelete.value), {
+        preserveState: false, // We want the page to reload to get fresh data
+        onSuccess: () => closeModal(),
+    });
+};
+
+const closeModal = () => {
+    confirmingTaskDeletion.value = false;
+    taskToDelete.value = null;
 };
 </script>
 
@@ -89,7 +106,7 @@ const onDragEnd = (event) => {
                     </form>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div v-if="project.tasks.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Columns -->
                     <div v-for="column in columns" :key="column.title" class="bg-gray-100 rounded-lg p-4">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ column.title }}</h3>
@@ -103,8 +120,15 @@ const onDragEnd = (event) => {
                             class="space-y-3 min-h-[100px]"
                         >
                             <template #item="{ element: task }">
-                                <div class="bg-white p-3 rounded-md shadow cursor-move" :data-task-id="task.id">
-                                    <p>{{ task.title }}</p>
+                                <div class="bg-white p-3 rounded-md shadow cursor-move group" :data-task-id="task.id">
+                                    <div class="flex justify-between items-start">
+                                        <p>{{ task.title }}</p>
+                                        <button @click="confirmTaskDeletion(task.id)" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </template>
                         </draggable>
@@ -113,7 +137,28 @@ const onDragEnd = (event) => {
                         </div>
                     </div>
                 </div>
+                <div v-else class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 text-center">
+                    <p class="text-gray-500">This project doesn't have any tasks yet. Add one using the form above!</p>
+                </div>
             </div>
         </div>
+
+        <!-- Deletion Confirmation Modal -->
+        <ConfirmationModal :show="confirmingTaskDeletion" @close="closeModal">
+            <template #title>
+                Delete Task
+            </template>
+            <template #content>
+                Are you sure you want to delete this task? This action cannot be undone.
+            </template>
+            <template #footer>
+                <SecondaryButton @click="closeModal">
+                    Cancel
+                </SecondaryButton>
+                <DangerButton class="ms-3" @click="deleteTask">
+                    Delete Task
+                </DangerButton>
+            </template>
+        </ConfirmationModal>
     </AppLayout>
 </template>

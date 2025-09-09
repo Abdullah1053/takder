@@ -1,6 +1,10 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Link, useForm } from '@inertiajs/vue3';
+import { Link, useForm, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import ConfirmationModal from '@/Components/ConfirmationModal.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import DangerButton from '@/Components/DangerButton.vue';
 
 defineProps({
     projects: Array,
@@ -11,10 +15,29 @@ const form = useForm({
     description: '',
 });
 
+const confirmingProjectDeletion = ref(false);
+const projectToDelete = ref(null);
+
 const submit = () => {
     form.post(route('projects.store'), {
         onSuccess: () => form.reset(),
     });
+};
+
+const confirmProjectDeletion = (id) => {
+    projectToDelete.value = id;
+    confirmingProjectDeletion.value = true;
+};
+
+const deleteProject = () => {
+    router.delete(route('projects.destroy', projectToDelete.value), {
+        onSuccess: () => closeModal(),
+    });
+};
+
+const closeModal = () => {
+    confirmingProjectDeletion.value = false;
+    projectToDelete.value = null;
 };
 </script>
 
@@ -52,17 +75,38 @@ const submit = () => {
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8">
                     <h3 class="text-lg font-medium text-gray-900">Your Projects</h3>
                     <ul class="mt-4 space-y-2">
-                        <li v-for="project in projects" :key="project.id">
+                        <li v-for="project in projects" :key="project.id" class="flex justify-between items-center">
                             <Link :href="route('projects.show', project.id)" class="text-indigo-600 hover:text-indigo-900">
                                 {{ project.name }}
                             </Link>
+                            <DangerButton @click="confirmProjectDeletion(project.id)">
+                                Delete
+                            </DangerButton>
                         </li>
                     </ul>
-                     <div v-if="!projects.length" class="text-gray-500">
-                        You don't have any projects yet.
+                     <div v-if="!projects.length" class="text-center py-8 border-t border-gray-200 mt-4">
+                        <p class="text-gray-500">You don't have any projects yet. Create your first one to get started!</p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Deletion Confirmation Modal -->
+        <ConfirmationModal :show="confirmingProjectDeletion" @close="closeModal">
+            <template #title>
+                Delete Project
+            </template>
+            <template #content>
+                Are you sure you want to delete this project? All of its data will be permanently deleted. This action cannot be undone.
+            </template>
+            <template #footer>
+                <SecondaryButton @click="closeModal">
+                    Cancel
+                </SecondaryButton>
+                <DangerButton class="ms-3" @click="deleteProject">
+                    Delete Project
+                </DangerButton>
+            </template>
+        </ConfirmationModal>
     </AppLayout>
 </template>
