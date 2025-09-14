@@ -1,0 +1,1 @@
+import{_ as n}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{d as o,o as t,a as r}from"./app-DL5vOpxP.js";const a={};function s(c,e){return t(),o("div",null,e[0]||(e[0]=[r("h1",null,"Welcome to the Landing Page!",-1)]))}const f=n(a,[["render",s]]);export{f as default};
