@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { useToast } from 'vue-toastification';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -13,6 +14,20 @@ defineProps({
 });
 
 const showingNavigationDropdown = ref(false);
+const page = usePage();
+const toast = useToast();
+
+watch(() => page.props.flash.success, (newValue) => {
+    if (newValue) {
+        toast.success(newValue);
+    }
+});
+watch(() => page.props.flash.error, (newValue) => {
+    if (newValue) {
+        toast.error(newValue);
+    }
+});
+
 
 const switchToTeam = (team) => {
     router.put(route('current-team.update'), {
@@ -50,6 +65,12 @@ const logout = () => {
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
+                                </NavLink>
+                                <NavLink :href="route('projects.index')" :active="route().current('projects.index')">
+                                    Projects
+                                </NavLink>
+                                <NavLink v-if="$page.props.auth.user.is_admin" :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
+                                    Admin
                                 </NavLink>
                             </div>
                         </div>
@@ -193,6 +214,12 @@ const logout = () => {
                     <div class="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('projects.index')" :active="route().current('projects.index')">
+                            Projects
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink v-if="$page.props.auth.user.is_admin" :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
+                            Admin
                         </ResponsiveNavLink>
                     </div>
 
