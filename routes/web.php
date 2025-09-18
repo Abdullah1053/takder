@@ -8,7 +8,19 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-   return view('landingpage');
+    return view('landingpage');
+});
+
+Route::get('/about', function () {
+    return view('about');
+});
+
+Route::get('/pricing', function () {
+    return view('pricing');
+});
+
+Route::get('/contact', function () {
+    return view('contact');
 });
 
 Route::middleware([
